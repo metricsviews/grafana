@@ -65,7 +65,7 @@ func ProvideAlertEngine(renderer rendering.Service, bus bus.Bus, requestValidato
 	e.execQueue = make(chan *Job, 1000)
 	e.scheduler = newScheduler()
 	e.evalHandler = NewEvalHandler(e.DataService)
-	e.ruleReader = newRuleReader()
+	e.ruleReader = newRuleReader(sqlStore)
 	e.log = log.New("alerting.engine")
 	e.resultHandler = newResultHandler(e.RenderService, sqlStore, notificationService, encryptionService.GetDecryptedValue)
 

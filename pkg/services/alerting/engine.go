@@ -42,6 +42,7 @@ type AlertEngine struct {
 	log               log.Logger
 	resultHandler     resultHandler
 	usageStatsService usagestats.Service
+	sqlStore          *sqlstore.SQLStore
 }
 
 // IsDisabled returns true if the alerting service is disabled for this instance.
@@ -60,6 +61,7 @@ func ProvideAlertEngine(renderer rendering.Service, bus bus.Bus, requestValidato
 		RequestValidator:  requestValidator,
 		DataService:       dataService,
 		usageStatsService: usageStatsService,
+		sqlStore:          sqlStore,
 	}
 	e.ticker = NewTicker(time.Now(), time.Second*0, clock.New(), 1)
 	e.execQueue = make(chan *Job, 1000)
@@ -182,7 +184,7 @@ func (e *AlertEngine) processJob(attemptID int, attemptChan chan int, cancelChan
 	span := opentracing.StartSpan("alert execution")
 	alertCtx = opentracing.ContextWithSpan(alertCtx, span)
 
-	evalContext := NewEvalContext(alertCtx, job.Rule, e.RequestValidator)
+	evalContext := NewEvalContext(alertCtx, job.Rule, e.RequestValidator, e.sqlStore)
 	evalContext.Ctx = alertCtx
 
 	go func() {
